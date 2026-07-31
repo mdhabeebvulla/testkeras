@@ -1,14 +1,23 @@
 import os
+
 import gradio as gr
 import numpy as np
-import keras
+import tensorflow as tf
 
-model = keras.models.load_model("iris_mlp.keras", compile=False)
+model = tf.keras.models.load_model("iris_mlp.keras")
+
 CLASSES = ["setosa", "versicolor", "virginica"]
 
-# StandardScaler values from the complete sklearn Iris dataset.
-MEAN = np.array([5.8433332, 3.0573332, 3.7580000, 1.1993333], dtype=np.float32)
-SCALE = np.array([0.8253013, 0.4344110, 1.7594041, 0.7596926], dtype=np.float32)
+# StandardScaler values from the Iris dataset.
+MEAN = np.array(
+    [5.843333, 3.057333, 3.758000, 1.199333],
+    dtype=np.float32,
+)
+
+SCALE = np.array(
+    [0.825301, 0.434411, 1.759404, 0.759693],
+    dtype=np.float32,
+)
 
 
 def predict(sepal_length, sepal_width, petal_length, petal_width):
@@ -16,9 +25,14 @@ def predict(sepal_length, sepal_width, petal_length, petal_width):
         [[sepal_length, sepal_width, petal_length, petal_width]],
         dtype=np.float32,
     )
-    x = (x - MEAN) / SCALE
-    probabilities = model.predict(x, verbose=0)[0]
-    return {name: float(probabilities[i]) for i, name in enumerate(CLASSES)}
+
+    x_scaled = (x - MEAN) / SCALE
+    probabilities = model.predict(x_scaled, verbose=0)[0]
+
+    return {
+        CLASSES[i]: float(probabilities[i])
+        for i in range(len(CLASSES))
+    }
 
 
 demo = gr.Interface(
@@ -29,8 +43,11 @@ demo = gr.Interface(
         gr.Slider(1.0, 7.0, value=1.4, step=0.1, label="Petal length (cm)"),
         gr.Slider(0.1, 2.5, value=0.2, step=0.1, label="Petal width (cm)"),
     ],
-    outputs=gr.Label(num_top_classes=3, label="Predicted species"),
-    title="Iris Classifier - Keras 4-8-10-10-3",
+    outputs=gr.Label(
+        num_top_classes=3,
+        label="Predicted species",
+    ),
+    title="Iris Classifier",
     examples=[
         [5.1, 3.5, 1.4, 0.2],
         [6.0, 2.7, 4.2, 1.3],
