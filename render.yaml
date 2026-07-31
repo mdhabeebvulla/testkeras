@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: iris-keras-gradio
+    name: iris-keras-classifier
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python app.py
